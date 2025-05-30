@@ -19,7 +19,7 @@ interface Category {
   title: string;
 }
 
-const props = defineProps<{ categories: Category[] }>();
+defineProps<{ categories: Category[] }>();
 // Состояние активных фильтров
 const activeFilters = ref<number[]>([]);
 

@@ -4,7 +4,7 @@
             <div class="afisha-preview">
                 <div 
                     class="afisha-card" 
-                    v-for="(item, index) in cards.slice(0, 2)" 
+                    v-for="(item) in cards.slice(0, 2)" 
                     :key="item.id"
                     @click="openCard(item.id)"
                 >

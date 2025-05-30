@@ -3,7 +3,7 @@
         <div class="list-container">
             <div class="scrollable-area">
                 <div class="afisha-list">
-                    <div class="afisha-card" v-for="(item, index) in afisha" :key="item.id" @click="openCard(item.id)">
+                    <div class="afisha-card" v-for="(item) in afisha" :key="item.id" @click="openCard(item.id)">
                         <Card :cards="item"></Card>
                     </div>
                 </div>

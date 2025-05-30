@@ -34,7 +34,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed, nextTick } from 'vue'
+import { ref, onMounted, onUnmounted, computed, nextTick, type CSSProperties } from 'vue'
 import Navigation from './Navigation.vue'
 
 interface Categories {
@@ -90,10 +90,11 @@ const imageStyle = computed(() => ({
   transform: `translate(${translateX.value}px, ${translateY.value}px) scale(${scale.value})`,
   width: `${imageNaturalDimensions.value.width}px`,
   height: `${imageNaturalDimensions.value.height}px`,
-  willChange: 'transform', // For performance
+  willChange: 'transform',
   userSelect: 'none',
   webkitUserDrag: 'none',
-}));
+}) as CSSProperties);
+
 
 function updateContainerDimensions() {
   if (mapContentRef.value) {
