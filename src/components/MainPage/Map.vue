@@ -86,6 +86,51 @@ const MAX_SCALE = 2.5;
 const ZOOM_SENSITIVITY_BUTTON = 1.2;
 const ZOOM_SENSITIVITY_WHEEL = 0.001;
 
+
+const isPinching = ref(false);
+const lastPinchDistance = ref(0);
+
+function getDistanceBetweenTouches(event: TouchEvent): number {
+  const [touch1, touch2] = event.touches;
+  const dx = touch2.clientX - touch1.clientX;
+  const dy = touch2.clientY - touch1.clientY;
+  return Math.sqrt(dx * dx + dy * dy);
+}
+
+function onTouchStart(event: TouchEvent) {
+  if (event.touches.length === 2) {
+    isPinching.value = true;
+    lastPinchDistance.value = getDistanceBetweenTouches(event);
+  }
+}
+
+function onTouchMove(event: TouchEvent) {
+  if (isPinching.value && event.touches.length === 2) {
+    const currentDistance = getDistanceBetweenTouches(event);
+    const zoomFactor = currentDistance / lastPinchDistance.value;
+
+    // Фокус масштабирования - центр между пальцами
+    const rect = mapContentRef.value?.getBoundingClientRect();
+    if (!rect) return;
+
+    const focalX =
+      (event.touches[0].clientX + event.touches[1].clientX) / 2 - rect.left;
+    const focalY =
+      (event.touches[0].clientY + event.touches[1].clientY) / 2 - rect.top;
+
+    doZoom(zoomFactor, focalX, focalY);
+
+    lastPinchDistance.value = currentDistance;
+  }
+}
+
+function onTouchEnd(event: TouchEvent) {
+  if (event.touches.length < 2) {
+    isPinching.value = false;
+    lastPinchDistance.value = 0;
+  }
+}
+
 const imageStyle = computed(() => ({
   transform: `translate(${translateX.value}px, ${translateY.value}px) scale(${scale.value})`,
   width: `${imageNaturalDimensions.value.width}px`,
@@ -231,6 +276,13 @@ onMounted(() => {
   window.addEventListener('pointerup', onPointerUp);
   window.addEventListener('pointercancel', onPointerUp);
   window.addEventListener('resize', initializeMapState);
+  const mapContent = mapContentRef.value;
+  if (mapContent) {
+    mapContent.addEventListener("touchstart", onTouchStart);
+    mapContent.addEventListener("touchmove", onTouchMove);
+    mapContent.addEventListener("touchend", onTouchEnd);
+    mapContent.addEventListener("touchcancel", onTouchEnd);
+  }
   nextTick(() => {
     initializeMapState();
   });
@@ -242,6 +294,13 @@ onUnmounted(() => {
   window.removeEventListener('pointerup', onPointerUp);
   window.removeEventListener('pointercancel', onPointerUp);
   window.removeEventListener('resize', initializeMapState);
+  const mapContent = mapContentRef.value;
+  if (mapContent) {
+    mapContent.removeEventListener("touchstart", onTouchStart);
+    mapContent.removeEventListener("touchmove", onTouchMove);
+    mapContent.removeEventListener("touchend", onTouchEnd);
+    mapContent.removeEventListener("touchcancel", onTouchEnd);
+  }
 });
 
 </script>
