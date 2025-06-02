@@ -13,6 +13,20 @@
                 :style="imageStyle"
                 @load="onImageLoad" 
             >
+            <div 
+              v-for="point in points" 
+              :key="point.id" 
+              class="point" 
+              :class="`point-${point.id}`"
+              :style="getPointStyle(point.id)"
+               @click="handlePointClick(point.id)"
+            >
+              <img
+                :src="getFullImageUrl(point.icon)" 
+                :alt="point.title"
+                class="point-icon"
+              >
+            </div>
         </div>
         <Navigation 
             :isMap="true" 
@@ -20,32 +34,31 @@
             :categories="categories"
             @zoomIn="handleZoomIn"
             @zoomOut="handleZoomOut"
+            @selectedFilters="handleSelectedFilters"
+            @search-update="handleSearchUpdate"
         ></Navigation>
-    </div>
-    <div class="points">
-        <div 
-            v-for="point in points" 
-            :key="point.id" 
-            class="point"
-        >
-            <img :src="getFullImageUrl(point.icon)" :alt="point.title">
-        </div>
     </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed, nextTick, type CSSProperties } from 'vue'
 import Navigation from './Navigation.vue'
-
+import axios from 'axios';
 interface Categories {
   id: number;
   title: string;
 }
 
+interface Category {
+  id: number;
+  title: string;
+}
+
 interface Points {
-  id: number,
-  title: string,
-  icon: string
+  id: number;
+  title: string;
+  icon: string;
+  categories: Category[];
 }
 
 const props = defineProps({
@@ -60,12 +73,48 @@ const props = defineProps({
   }
 })
 
+const emit = defineEmits(['pointClick', 'selectedFilters', 'search-update'])
+
+const handleSearchUpdate = (query: string) => {
+    emit('search-update', query);
+};
+
+const pointPositions = ref<Record<number, { x: number; y: number }>>({
+  2: { x: 2000, y: 200 },
+  3: { x: 1950, y: 600 },
+  4: { x: 2400, y: 1100 },
+  5: { x: 2000, y: 1280 },
+  6: { x: 1980, y: 1700 },
+  7: { x: 2650, y: 1650 },
+  8: { x: 1700, y: 1950 },
+  9: { x: 1800, y: 2100 },
+  10: { x: 2250, y: 1950 },
+  11: { x: 1500, y: 2200 },
+  12: { x: 1200, y: 2700 },
+  13: { x: 1850, y: 2900 },
+  14: { x: 2200, y: 2800 },
+  15: { x: 1750, y: 3400 },
+  16: { x: 2600, y: 3800 },
+  17: { x: 1200, y: 3950 },
+});
 
 const BASE_URL = 'https://api-konakovo.test.itlabs.top';
 
 // Функция для получения полного URL изображения
 const getFullImageUrl = (icon: string) => `${BASE_URL}${icon}`;
 
+
+async function handlePointClick(pointId: number) {
+  try {
+    const response = await axios.get(`https://api-konakovo.test.itlabs.top/api/point/${pointId}`);
+    const pointDetails = response.data;
+
+    // Отправляем данные в событие
+    emit('pointClick', pointDetails);
+  } catch (error) {
+    console.error('Failed to fetch point details:', error);
+  }
+}
 
 const mapContainerRef = ref<HTMLDivElement | null>(null);
 const mapContentRef = ref<HTMLDivElement | null>(null);
@@ -90,6 +139,22 @@ const ZOOM_SENSITIVITY_WHEEL = 0.001;
 const isPinching = ref(false);
 const lastPinchDistance = ref(0);
 
+
+function getPointStyle(pointId: number): CSSProperties {
+  const position = pointPositions.value[pointId];
+  if (!position) return {};
+
+  const scaledX = position.x * scale.value + translateX.value;
+  const scaledY = position.y * scale.value + translateY.value;
+
+  return {
+    position: 'absolute',
+    left: `${scaledX}px`,
+    top: `${scaledY}px`,
+    transform: `translate(-50%, -50%) scale(${scale.value})`,
+    transformOrigin: 'center'
+  };
+}
 function getDistanceBetweenTouches(event: TouchEvent): number {
   const [touch1, touch2] = event.touches;
   const dx = touch2.clientX - touch1.clientX;
@@ -266,6 +331,12 @@ function onWheel(event: WheelEvent) {
   doZoom(zoomFactor, focalX, focalY);
 }
 
+const selectedFilters = ref<string[]>([]);
+
+const handleSelectedFilters = (filters: string[], showFilters: Boolean) => {
+    selectedFilters.value = filters;
+    emit('selectedFilters', selectedFilters.value, showFilters)
+}
 
 onMounted(() => {
   if (imgRef.value && imgRef.value.complete) {
@@ -286,7 +357,7 @@ onMounted(() => {
   nextTick(() => {
     initializeMapState();
   });
-  console.log(props.points)
+  console.log("Mounted points", props.points)
 });
 
 onUnmounted(() => {
@@ -324,7 +395,20 @@ onUnmounted(() => {
     overflow: hidden;
     cursor: grab;
     border-radius: 68px;
-    
+    .point {
+      position: absolute;
+      z-index: 0;
+      width: 299px;
+      height: 299px;
+      .point-icon {
+        width: 100%;
+        height: 100%;
+      }
+    }
+    .point-8, .point-9, .point-12 {
+      width: 85px;
+      height: 85px;
+    }
     img {
       position: absolute;
       top: 0;

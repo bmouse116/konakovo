@@ -49,6 +49,7 @@ const toggleFilter = (filter: number) => {
     padding: 20px;
     display: flex;
     gap: 20px;
+    pointer-events: all;
 
     button {
         max-width: 650px;

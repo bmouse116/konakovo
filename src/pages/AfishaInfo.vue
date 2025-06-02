@@ -2,7 +2,10 @@
     <div class="info container">
         <div class="info-container">
             <div class="info-padding">
-                <div class="info-main">
+                <div v-if="isLoading" class="loader">
+                    <div class="spinner"></div>
+                </div>
+                <div class="info-main" v-else>
                     <div class="info-img">
                         <img :src="fullImageUrl" alt="" v-if="cardDetails?.image">
                         <p v-else>Изображение отсутствует</p>
@@ -41,7 +44,7 @@ import { computed, onMounted, ref } from 'vue';
 
 const route = useRoute()
 const id = route.params.id
-
+const isLoading = ref(true)
 interface CardDetails {
     id: number,
     title: string,
@@ -61,6 +64,9 @@ const fetchDetails = async() => {
     }
     catch(error) {
         console.log(error)
+    }
+    finally {
+        isLoading.value = false
     }
 }
 

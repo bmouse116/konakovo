@@ -1,9 +1,12 @@
 <template>
     <div class="afisha container">
-        <div class="list-container">
+        <div v-if="isLoading" class="loader">
+            <div class="spinner"></div>
+        </div>
+        <div class="list-container" v-else>
             <div class="scrollable-area">
                 <div class="afisha-list">
-                    <div class="afisha-card" v-for="(item) in afisha" :key="item.id" @click="openCard(item.id)">
+                    <div class="afisha-card" v-for="(item) in filteredAfisha" :key="item.id" @click="openCard(item.id)">
                         <Card :cards="item"></Card>
                     </div>
                 </div>
@@ -14,12 +17,13 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import Navigation from '../components/MainPage/Navigation.vue';
 import Card from '../components/MainPage/Card.vue';
 import axios from 'axios';
 
+const isLoading = ref(true)
 const router = useRouter()
 
 interface Afisha {
@@ -27,6 +31,7 @@ interface Afisha {
     title: string;
     date: string;
     image: string;
+    categories: Category[]
 }
 
 interface Category {
@@ -35,8 +40,21 @@ interface Category {
 }
 
 const categories = ref<Category[]>([]);
+const afisha = ref<Afisha[]>([])
+const selectedFilters = ref<number[]>([])
 
-// Функция для получения категорий с API
+// Вычисляемое свойство для отфильтрованных афиш
+const filteredAfisha = computed(() => {
+    if (selectedFilters.value.length === 0) {
+        return afisha.value;
+    }
+    return afisha.value.filter(item => 
+        item.categories.some(category => 
+            selectedFilters.value.includes(category.id)
+        )
+    );
+});
+
 const fetchCategories = async () => {
     try {
         const response = await axios.get('https://api-konakovo.test.itlabs.top/api/category');
@@ -44,9 +62,11 @@ const fetchCategories = async () => {
     } catch (error) {
         console.error('Ошибка при загрузке категорий:', error);
     }
+    finally {
+        isLoading.value = false
+    }
 };
 
-const afisha = ref<Afisha[]>([])
 const fetchAfisha = async() => {
     try {
         const response = await axios.get('https://api-konakovo.test.itlabs.top/api/afisha')
@@ -61,11 +81,8 @@ const openCard = (id: number) => {
     router.push({name: 'AfishaInfo', params: {id}})
 }
 
-const selectedFilters = ref<number[]>([])
-
-const hanldeSelectedFilters = (filters: number[]) => {
-    selectedFilters.value = filters
-    console.log(selectedFilters.value)
+const hanldeSelectedFilters = (filters: number[], showFilters: Boolean) => {
+    selectedFilters.value = showFilters ? filters : [];
 }
 
 onMounted(() => {

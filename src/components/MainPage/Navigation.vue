@@ -8,9 +8,6 @@
                 <div class="control plus" @click="emit('zoomIn')">
                     <img src="/src/assets/img/svg/pluse.svg" alt="Увеличить">
                 </div>
-                <div class="control loop">
-                    <img src="/src/assets/img/svg/loop.svg" alt="">
-                </div>
             </div>
             <Filters v-if="showFilters" @filtersSelected="handleFilterSelected" :categories="categories"></Filters>
             <div class="search-bar">
@@ -96,8 +93,11 @@ const props = defineProps({
 const handleVisible = ref(Boolean(props.isVisible))
 const emit = defineEmits(['selectedFilters', 'zoomIn', 'zoomOut', 'search-update'])
 
+
 const updateSearchText = (e: Event) => {
-  searchText.value = (e.target as HTMLInputElement).value;
+    const value = (e.target as HTMLInputElement).value;
+    searchText.value = value;
+    emit('search-update', value);
 };
 
 const openKeyboard = () => {
@@ -128,17 +128,18 @@ const toBack = () => {
 
 const openFilters = () => {
     if(showFilters.value === true) {
-        showFilters.value = false
-    } else {
-        showFilters.value = true
+        // При закрытии фильтров сбрасываем выбранные фильтры
+        selectedFilters.value = [];
+        emit('selectedFilters', selectedFilters.value, false);
     }
+    showFilters.value = !showFilters.value;
 }
 
 const selectedFilters = ref<string[]>([]);
 
 const handleFilterSelected = (filters: string[]) => {
     selectedFilters.value = filters;
-    emit('selectedFilters', selectedFilters.value)
+    emit('selectedFilters', selectedFilters.value, showFilters.value)
 }
 
 </script>
@@ -151,12 +152,13 @@ const handleFilterSelected = (filters: string[]) => {
     bottom: 80px;
     left: 50%;
     transform: translate(-50%);
+    pointer-events: none;
     .navigation-container {
         display: flex;
         flex-direction: column;
         gap: 20px;
         .scalling {
-            height: 536px;
+            height: 345px;
             width: 168px;
             background-color: $white-color;
             display: flex;
@@ -167,6 +169,7 @@ const handleFilterSelected = (filters: string[]) => {
             margin-bottom: 20px;
             border-radius: 68px;
             margin-left: auto;
+            pointer-events: all;
             .control {
                 background-color: $title-color;
                 border: 8px solid $title-border;
@@ -196,6 +199,7 @@ const handleFilterSelected = (filters: string[]) => {
             gap: 20px;
             padding: 20px;
             justify-content: space-between;
+            pointer-events: all;
         }
     }
 }

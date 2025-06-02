@@ -1,10 +1,13 @@
 <template>
     <div class="container">
         <div class="main-container">
+            <div v-if="isLoading" class="loader">
+                <div class="spinner"></div>
+            </div>
             <div class="afisha-preview">
-                <div 
-                    class="afisha-card" 
-                    v-for="(item) in cards.slice(0, 2)" 
+                <div
+                    class="afisha-card"
+                    v-for="(item) in cards.slice(0, 2)"
                     :key="item.id"
                     @click="openCard(item.id)"
                 >
@@ -13,19 +16,31 @@
             </div>
             <PreviewAll @click="toAfisha"></PreviewAll>
             <div class="map-container">
-                <Map :categories="categories" :points="points"></Map>
+                <Map
+                :categories="categories"
+                :points="filteredPoints"
+                @pointClick="openPointInfo"
+                @selected-filters="hanldeSelectedFilters"
+                @search-update="handleSearchUpdate"
+                ></Map>
             </div>
+            <PointInfo
+            v-if="isPointInfoVisible"
+            :point="activePoint"
+            @close="closePointInfo"
+            ></PointInfo>
         </div>
     </div>
 </template>
 
 <script lang="ts" setup>
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 import Card from '../components/MainPage/Card.vue'
 import PreviewAll from '../components/MainPage/PreviewAll.vue'
 import Map from '../components/MainPage/Map.vue'
+import PointInfo from '../components/MainPage/PointInfo.vue'
 
 const router = useRouter()
 
@@ -34,6 +49,7 @@ interface Card {
     title: string;
     date: string;
     image: string;
+    categories: Category[];
 }
 
 interface Categories {
@@ -41,24 +57,57 @@ interface Categories {
     title: string;
 }
 
+interface Category {
+  id: number;
+  title: string;
+}
+
 interface Points {
-    id: number,
-    title: string,
-    icon: string
+  id: number;
+  title: string;
+  icon: string;
+  categories: Category[];
+}
+
+interface PointData {
+  id: number;
+  title: string;
+  icon: string;
+  category: Category[];
+  address?: string;
+  phone?: string | null;
+  site?: string | null;
+  description?: string;
+  pointInterestMedia?: Array<{
+    id: number;
+    media: string;
+  }>;
 }
 
 const categories = ref<Categories[]>([])
 const cards = ref<Card[]>([])
 const points = ref<Points[]>([])
+const isPointInfoVisible = ref(false)
+const activePoint = ref<PointData | null>(null)
+const selectedFilters = ref<number[]>([])
+const isLoading = ref(true)
 
-const fetchAfisha = async() => {
+const fetchAfisha = async () => {
     try {
         const response = await axios.get('https://api-konakovo.test.itlabs.top/api/afisha')
-        cards.value = response.data
-        console.log(cards.value)
-    }
-    catch(error) {
-        console.log(error)
+        cards.value = response.data.map((item: any) => ({
+            id: item.id,
+            title: item.title,
+            date: item.date,
+            image: item.image,
+            categories: item.categories.map((category: any) => ({
+                id: category.id,
+                title: category.title,
+            })),
+        }))
+        console.log('Afisha:', cards.value)
+    } catch (error) {
+        console.error('Ошибка при загрузке афиши:', error)
     }
 }
 
@@ -72,14 +121,72 @@ const fetchCategories = async() => {
     }
 }
 
-const fetchPoints = async() => {
-    try {
-        const response = await axios.get('https://api-konakovo.test.itlabs.top/api/point')
-        points.value = response.data
+const fetchPoints = async () => {
+  try {
+    const response = await axios.get('https://api-konakovo.test.itlabs.top/api/point');
+    points.value = response.data.map((point: any) => ({
+      id: point.id,
+      title: point.title,
+      icon: point.icon,
+      categories: point.categories.map((category: any) => ({
+        id: category.id,
+        title: category.title,
+      })),
+    }));
+    console.log(points.value);
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+const fetchData = async () => {
+  try {
+    await Promise.all([fetchAfisha(), fetchCategories(), fetchPoints()]);
+  } catch (error) {
+    console.error('Ошибка при загрузке данных:', error);
+  } finally {
+    isLoading.value = false; // Отключаем загрузчик после завершения
+  }
+};
+
+const searchQuery = ref('');
+
+const filteredPoints = computed(() => {
+    let result = points.value;
+    
+    // Фильтрация по категориям
+    if (selectedFilters.value.length > 0) {
+        result = result.filter(point => 
+            point.categories.some(category => 
+                selectedFilters.value.includes(category.id)
+            )
+        );
     }
-    catch(error) {
-        console.log(error)
+    
+    // Фильтрация по поисковому запросу
+    if (searchQuery.value) {
+        const query = searchQuery.value.toLowerCase();
+        result = result.filter(point => 
+            point.title.toLowerCase().includes(query)
+        );
     }
+    
+    return result;
+});
+
+const handleSearchUpdate = (query: string) => {
+    searchQuery.value = query;
+};
+
+const openPointInfo = (pointDetails: PointData) => {
+    activePoint.value = pointDetails;
+    isPointInfoVisible.value = true;
+    console.log("active point", activePoint)
+}
+
+const closePointInfo = () => {
+    isPointInfoVisible.value = false;
+    activePoint.value = null;
 }
 
 const toAfisha = () => {
@@ -93,12 +200,18 @@ const openCard = (id: number) => {
     })
 }
 
+const hanldeSelectedFilters = (filters: number[], showFilters: Boolean) => {
+    if(showFilters === false){
+        selectedFilters.value = []
+    }
+    else {
+        selectedFilters.value = filters
+    }
+}
 
 
 onMounted(() => {
-    fetchAfisha()
-    fetchCategories()
-    fetchPoints()
+    fetchData()
 })
 </script>
 

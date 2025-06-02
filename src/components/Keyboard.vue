@@ -87,6 +87,7 @@ const toggleCapsLock = () => {
   display: flex;
   flex-direction: column;
   justify-content: center;
+  pointer-events: all;
 }
 
 .keyboard-row {
@@ -137,6 +138,7 @@ const toggleCapsLock = () => {
     display: flex;
     align-items: center;
     justify-content: center;
+    pointer-events: all;
 }
 
 .key--utility {
