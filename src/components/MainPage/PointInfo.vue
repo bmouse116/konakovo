@@ -88,12 +88,6 @@ interface Category {
   title: string;
 }
 
-interface Points {
-  id: number;
-  title: string;
-  icon: string;
-  categories: Category[];
-}
 
 interface PointData {
   id: number;
