@@ -2,7 +2,7 @@
     <div class="card">
         <div class="card-content">
             <div class="card-img">
-                <img :src="fullImageUrl" alt="" v-if="cards.image" loading="lazy">
+                <img :src="fullImageUrl" alt="" v-if="cards.image">
                 <p v-else>Изображение отсутствует</p>
             </div>
             <div class="card-title">
