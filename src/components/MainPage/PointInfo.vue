@@ -23,7 +23,7 @@
               v-if="currentMediaType === 'image'"
               :src="getCurrentMediaUrl()" 
               alt="Point Image"
-              loading="lazy"
+              
             >
             <video
               v-else-if="currentMediaType === 'video'"
