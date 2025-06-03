@@ -26,8 +26,8 @@
                                     class="description-contacts" 
                                     :class="{ 'single-line': !cardDetails?.contact }"
                                 >
+                                    <h5 v-if="cardDetails?.site">{{ cardDetails.site }}</h5>
                                     <h5 v-if="cardDetails?.contact">{{ cardDetails.contact }}</h5>
-                                    <h5 v-if="cardDetails?.place">{{ cardDetails.contact }}</h5>
                                 </div>
                             </div>
                         </div>
@@ -55,6 +55,7 @@ interface CardDetails {
     date: string,
     place: string,
     contact: string,
+    site: string,
     image: string
 }
 
