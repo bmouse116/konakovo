@@ -81,8 +81,8 @@ const props = defineProps({
         default: false
     },
     categories: {
-        type: Array as () => Category[], // Properly type the categories prop
-        required: false, // Делаем необязательным
+        type: Array as () => Category[],
+        required: false, 
         default: () => []
     },
     isVisible: {

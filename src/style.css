@@ -1,0 +1,58 @@
+@font-face {
+  font-family: "Travels";
+  src: url("../src/assets/fonts/TT Travels Next Trial Bold.ttf");
+}
+@font-face {
+  font-family: "Inter";
+  src: url("../src/assets/fonts/Inter_18pt-Medium.ttf");
+}
+@font-face {
+  font-family: "Montserrat";
+  src: url("../src/assets/fonts/Montserrat-Light.ttf");
+}
+* {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: #e8bc71;
+  height: 100vh;
+  font-family: "Travels";
+}
+
+h1, h2, h3, h4, h5, p, span, button {
+  color: #373737;
+}
+
+button {
+  font-family: "Travels";
+}
+
+.container {
+  width: 100%;
+  padding: 60px;
+}
+
+.loader {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.spinner {
+  width: 150px;
+  height: 150px;
+  border: 20px solid rgba(0, 0, 0, 0.1);
+  border-top-color: #FFD52F;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}/*# sourceMappingURL=style.css.map */
