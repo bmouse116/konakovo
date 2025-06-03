@@ -212,8 +212,8 @@ onMounted(() => {
                     -webkit-box-orient: vertical;
                     overflow-y: auto;
                     overflow-x: hidden;
-                    min-height: 635px;
-                    max-height: 635px;
+                    min-height: 638px;
+                    max-height: 638px;
                     &::-webkit-scrollbar {
                         width: 20px;
                     }
