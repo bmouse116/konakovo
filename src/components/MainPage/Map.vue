@@ -63,7 +63,7 @@ interface Points {
   categories: Category[];
 }
 
-const props = defineProps({
+defineProps({
   categories: {
     type: Array as () => Categories[],
     required: false,
