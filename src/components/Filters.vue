@@ -1,60 +1,80 @@
 <template>
     <div class="filters">
-        <Button
-            v-for="category in categories"
-            :key="category.id"
-            :class="{ active: activeFilters.includes(category.id) }"
-            @click="toggleFilter(category.id)"
-        >
-            {{ category.title }}
-        </Button>
+        <div class="filters-container">
+            <Button
+                v-for="category in categories"
+                :key="category.id"
+                :class="{ active: activeFilters.includes(category.id) }"
+                @click="toggleFilter(category.id)"
+            >
+                {{ category.title }}
+            </Button>
+        </div>
     </div>
 </template>
 
 <script setup lang="ts">
-import { ref, defineEmits} from 'vue';
+import { ref, defineEmits } from 'vue';
 import Button from './Button.vue';
+
 interface Category {
   id: number;
   title: string;
 }
 
 defineProps<{ categories: Category[] }>();
-// Состояние активных фильтров
+
 const activeFilters = ref<number[]>([]);
 
-// Эмит события
 const emit = defineEmits(['filtersSelected']);
 
-// Добавление или удаление фильтра из активных
 const toggleFilter = (filter: number) => {
     if (activeFilters.value.includes(filter)) {
         activeFilters.value = activeFilters.value.filter(f => f !== filter);
     } else {
         activeFilters.value.push(filter);
     }
-    // Эмитим выбранные фильтры
     emit('filtersSelected', activeFilters.value);
 };
-
 </script>
 
+
 <style scoped lang="scss">
-@use '/src/root.scss' as *;
+@use '/src/root.scss' as *; // Убедитесь, что путь правильный
 .filters {
     background-color: $white-color;
     border-radius: 48px;
     padding: 20px;
-    display: flex;
-    gap: 20px;
     pointer-events: all;
 
-    button {
-        max-width: 650px;
-    }
-}
+    .filters-container {
+        display: flex;
+        gap: 20px;
+        overflow-x: auto;
+        white-space: nowrap;
 
-.active {
-    background-color: $title-color;
+        &::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background-color: #F3C923;
+            border-radius: 4px;
+        }
+
+        &::-webkit-scrollbar-track {
+            background: #FDF5D3; 
+        }
+        padding-bottom: 10px; 
+        margin-bottom: -10px; 
+        button {
+            max-width: 600px;
+            flex-shrink: 0;
+        }
+    }
+
+    .active {
+        background-color: $title-color;
+    }
 }
 </style>

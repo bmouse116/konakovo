@@ -56,12 +56,15 @@
         <div class="details-description">
             <p>{{ point?.description }}</p>
             <div class="details-contact">
-                <span>{{ point?.address }}</span>
-                <div class="contact-details">
-                    <span>{{ point?.site }}</span>
-                    <span>{{ point?.phone }}</span>
-                </div>
+            <span v-if="point?.address">{{ point.address }}</span>
+            <div 
+              class="contact-details" 
+              :class="{ 'single-line': !point?.site }"
+            >
+              <span v-if="point?.site">{{ point.site }}</span>
+              <span v-if="point?.phone">{{ point.phone }}</span>
             </div>
+          </div>
         </div>
       </div>
     </div>
@@ -323,23 +326,34 @@ const handleAnimationEnd = () => {
           background-color: #F3C923;
           border-radius: 10px;
         }
-        &::-webkit-scrollbar-thumb:hover {
-          background-color: #a50606;
-        }
     }
     .details-contact {
-        font-family: 'Inter';
-        font-size: 64px;
-        font-weight: 700;
+      font-family: 'Inter';
+      font-size: 64px;
+      font-weight: 700;
+      display: flex;
+      flex-direction: column;
+      position: absolute;
+      bottom: 40px;
+      width: 1840px;
+      
+      > span {
+        width: 65%;
+        margin-bottom: 10px; // Разделение между строками
+      }
+      
+      .contact-details {
         display: flex;
-        flex-direction: column;
-        position: absolute;
-        bottom: 40px;
-        width: 1840px;
-        .contact-details {
-            display: flex;
-            justify-content: space-between;
+        justify-content: space-between;
+
+        &.single-line {
+          justify-content: flex-start;
+          
+          span {
+            margin-right: 40px; // Расстояние между адресом и телефоном
+          }
         }
+      }
     }
   }
 }

@@ -22,9 +22,12 @@
                             <p>{{ cardDetails?.description }}</p>
                             <div class="main-description">
                                 <h5>{{ cardDetails?.place }}</h5>
-                                <div class="description-contacts">
-                                    <h5>https://faience.konakovo.org</h5>
-                                    <h5>{{ cardDetails?.contact }}</h5>
+                                <div 
+                                    class="description-contacts" 
+                                    :class="{ 'single-line': !cardDetails?.contact }"
+                                >
+                                    <h5 v-if="cardDetails?.contact">{{ cardDetails.contact }}</h5>
+                                    <h5 v-if="cardDetails?.place">{{ cardDetails.contact }}</h5>
                                 </div>
                             </div>
                         </div>
@@ -212,8 +215,8 @@ onMounted(() => {
                     -webkit-box-orient: vertical;
                     overflow-y: auto;
                     overflow-x: hidden;
-                    min-height: 635px;
-                    max-height: 635px;
+                    min-height: 638px;
+                    max-height: 638px;
                     &::-webkit-scrollbar {
                         width: 20px;
                     }
@@ -235,6 +238,9 @@ onMounted(() => {
                     position: absolute;
                     bottom: 20px;
                     width: 100%;
+                    > h5 {
+                        width: 65%;
+                    }
                     h5 {
                         font-size: 64px;
                         font-weight: 700;
@@ -244,6 +250,14 @@ onMounted(() => {
                         display: flex;
                         justify-content: space-between;
                         padding-right: 4%;
+                        
+                        &.single-line {
+                            justify-content: flex-start;
+
+                            h5 {
+                                margin-right: 40px; // Отступ между элементами
+                            }
+                        }
                     }
                 }
             }

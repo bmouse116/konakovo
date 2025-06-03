@@ -5,7 +5,7 @@ import { useRouter, useRoute } from "vue-router"
 type InactivityCallback = () => void;
 
 export const useInactivity = () => {
-    const timeOutToHome = 10 // секунды
+    const timeOutToHome = 100 // секунды
     const route = useRoute()
     const router = useRouter()
     const isInactive = ref(false)
