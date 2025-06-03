@@ -1,5 +1,5 @@
 <template>
-    <div class="afisha container">
+    <div class="afisha container" :style="afishaSpecificStyles">
         <div v-if="isLoading" class="loader">
             <div class="spinner"></div>
         </div>
@@ -12,7 +12,7 @@
                 </div>
             </div>
         </div>
-        <Navigation :isMap="false" :isInfo="false" @selectedFilters="hanldeSelectedFilters" :categories="categories"></Navigation>
+        <Navigation :isMap="false" :isInfo="false" @selectedFilters="hanldeSelectedFilters" :categories="categoriesForFilters"></Navigation>
     </div>
 </template>
 
@@ -42,6 +42,24 @@ interface Category {
 const categories = ref<Category[]>([]);
 const afisha = ref<Afisha[]>([])
 const selectedFilters = ref<number[]>([])
+
+const categoriesForFilters = computed(() => {
+    if (!afisha.value || afisha.value.length === 0 || !categories.value || categories.value.length === 0) {
+        return [];
+    }
+    const usedCategoryIds = new Set<number>();
+    afisha.value.forEach(item => {
+        if (item.categories && Array.isArray(item.categories)) {
+            item.categories.forEach(cat => {
+                usedCategoryIds.add(cat.id);
+            });
+        }
+    });
+    if (usedCategoryIds.size === 0) {
+        return [];
+    }
+    return categories.value.filter(category => usedCategoryIds.has(category.id));
+});
 
 // Вычисляемое свойство для отфильтрованных афиш
 const filteredAfisha = computed(() => {
@@ -84,6 +102,12 @@ const openCard = (id: number) => {
 const hanldeSelectedFilters = (filters: number[], showFilters: Boolean) => {
     selectedFilters.value = showFilters ? filters : [];
 }
+
+const afishaSpecificStyles = computed(() => {
+  return {
+    '--afisha-filter-button-width': '650px'
+  };
+});
 
 onMounted(() => {
     fetchAfisha()

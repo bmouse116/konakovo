@@ -334,6 +334,8 @@ const handleSelectedFilters = (filters: string[], showFilters: Boolean) => {
     emit('selectedFilters', selectedFilters.value, showFilters);
 };
 
+
+
 onMounted(() => {
   if (imgRef.value && imgRef.value.complete) {
     onImageLoad();

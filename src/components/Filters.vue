@@ -68,7 +68,7 @@ const toggleFilter = (filter: number) => {
         padding-bottom: 10px; 
         margin-bottom: -10px; 
         button {
-            max-width: 600px;
+            width: var(--afisha-filter-button-width, 600px); 
             flex-shrink: 0;
         }
     }

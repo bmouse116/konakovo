@@ -9,7 +9,7 @@
 <style scoped lang="scss">
 @use '/src/root.scss' as *;
 .btn {
-    max-width: 600px;
+    width: var(--afisha-filter-button-width, 600px); 
     width: 100%;
     height: 129px;
     border: 8px solid $title-border;

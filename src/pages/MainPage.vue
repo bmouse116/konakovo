@@ -17,7 +17,7 @@
             <PreviewAll @click="toAfisha"></PreviewAll>
             <div class="map-container">
                 <Map
-                :categories="categories"
+                :categories="categoriesForFilters"
                 :points="filteredPoints"
                 :infoOpen="infoOpen"
                 @pointClick="openPointInfo"
@@ -146,6 +146,24 @@ const fetchData = async () => {
   }
 };
 const searchQuery = ref('');
+
+const categoriesForFilters = computed(() => {
+    if (!points.value || points.value.length === 0 || !categories.value || categories.value.length === 0) {
+        return [];
+    }
+    const usedCategoryIds = new Set<number>();
+    points.value.forEach(point => {
+        if (point.categories && Array.isArray(point.categories)) {
+            point.categories.forEach(cat => {
+                usedCategoryIds.add(cat.id);
+            });
+        }
+    });
+    if (usedCategoryIds.size === 0) {
+        return [];
+    }
+    return categories.value.filter(category => usedCategoryIds.has(category.id));
+});
 
 const filteredPoints = computed(() => {
     let result = points.value;
