@@ -7,7 +7,7 @@
             <div class="afisha-preview">
                 <div
                     class="afisha-card"
-                    v-for="(item) in cards.slice(0, 2)"
+                    v-for="(item) in visibleCards"
                     :key="item.id"
                     @click="openCard(item.id)"
                 >
@@ -43,7 +43,9 @@ import Card from '../components/MainPage/Card.vue'
 import PreviewAll from '../components/MainPage/PreviewAll.vue'
 import Map from '../components/MainPage/Map.vue'
 import PointInfo from '../components/MainPage/PointInfo.vue'
+
 const router = useRouter()
+
 interface Card {
     id: number;
     title: string;
@@ -83,6 +85,7 @@ interface PointData {
     media: string;
   }>;
 }
+
 const categories = ref<Categories[]>([])
 const cards = ref<Card[]>([])
 const points = ref<Points[]>([])
@@ -91,10 +94,32 @@ const activePoint = ref<PointData | null>(null)
 const selectedFilters = ref<number[]>([])
 const isLoading = ref(true)
 
+const currentCardIndex = ref(0);
+let sliderInterval: number | undefined;
+
+const visibleCards = computed(() => {
+    if (!cards.value || cards.value.length === 0) {
+        return [];
+    }
+    return cards.value.slice(currentCardIndex.value, currentCardIndex.value + 2);
+});
+
+const slideNextCard = () => {
+    if (!cards.value || cards.value.length <= 2) {
+        return;
+    }
+    const nextStartIndex = currentCardIndex.value + 2;
+    if (nextStartIndex < cards.value.length) {
+        currentCardIndex.value = nextStartIndex;
+    } else {
+        currentCardIndex.value = 0;
+    }
+};
+
 const fetchAfisha = async () => {
     try {
         const response = await axios.get('https://api-konakovo.test.itlabs.top/api/afisha')
-        cards.value = response.data.map((item: any) => ({
+        cards.value = response.data.map((item: any): Card => ({
             id: item.id,
             title: item.title,
             date: item.date,
@@ -142,7 +167,7 @@ const fetchData = async () => {
   } catch (error) {
     console.error('Ошибка при загрузке данных:', error);
   } finally {
-    isLoading.value = false; // Отключаем загрузчик после завершения
+    isLoading.value = false;
   }
 };
 const searchQuery = ref('');
@@ -168,7 +193,6 @@ const categoriesForFilters = computed(() => {
 const filteredPoints = computed(() => {
     let result = points.value;
     
-    // Фильтрация по категориям
     if (selectedFilters.value.length > 0) {
         result = result.filter(point => 
             point.categories.some(category => 
@@ -177,7 +201,6 @@ const filteredPoints = computed(() => {
         );
     }
     
-    // Фильтрация по поисковому запросу
     if (searchQuery.value) {
         const query = searchQuery.value.toLowerCase();
         result = result.filter(point => 
@@ -234,37 +257,64 @@ const hanldeSelectedFilters = (filters: number[], showFilters: Boolean) => {
 const inactivity = inject<ReturnType<typeof useInactivity>>('inactivity');
 let unregisterInactivityCallback: (() => void) | null = null;
 
-onMounted(() => {
-    fetchData()
+onMounted(async () => {
+    await fetchData();
+
     if (inactivity && inactivity.registerOnInactive) {
         unregisterInactivityCallback = inactivity.registerOnInactive(() => {
             if (isPointInfoVisible.value) {
                 closePointInfo();
-                console.log('PointInfo closed due to inactivity.');
             }
         });
     }
-})
+
+    if (cards.value.length > 2) {
+        sliderInterval = window.setInterval(slideNextCard, 30000); //миллисекунды
+    }
+});
 
 onUnmounted(() => {
     if (unregisterInactivityCallback) {
         unregisterInactivityCallback();
     }
-})
+    if (sliderInterval) {
+        clearInterval(sliderInterval);
+    }
+});
 </script>
 
 <style scoped lang="scss">
 @use '../root.scss' as *;
+
 .main-container {
     display: flex;
     flex-direction: column;
     gap: 20px;
+
     .afisha-preview {
         display: flex;
         gap: 20px;
+        overflow: hidden;
+
         .afisha-card {
             width: 100%;
+            animation-name: slideInFromRightSmooth;
+            animation-duration: 0.6s;
+            animation-fill-mode: forwards;
+            animation-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+
         }
     }
 }
+@keyframes slideInFromRightSmooth {
+    from {
+        opacity: 0;
+        transform: translateX(30%);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
 </style>
