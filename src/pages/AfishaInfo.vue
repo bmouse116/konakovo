@@ -14,8 +14,8 @@
                         <div class="body-header">
                             <h2>{{ cardDetails?.title }}</h2>
                             <div class="header-date">
-                                <span>{{ formattedDate }}</span>
-                                <span>{{ formattedTime }}</span>
+                                <span v-if="formattedDate">{{ formattedDate }}</span>
+                                <span v-if="formattedTime">{{ formattedTime }}</span>
                             </div>
                         </div>
                         <div class="body-main">

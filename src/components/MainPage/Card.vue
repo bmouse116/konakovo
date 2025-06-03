@@ -7,7 +7,7 @@
             </div>
             <div class="card-title">
                 <h3>{{ cards.title }}</h3>
-                <span>{{formattedDate}}</span>
+                <span v-if="formattedDate">{{formattedDate}}</span>
             </div>
         </div>
     </div>
@@ -34,12 +34,14 @@ const fullImageUrl = computed(() => `${BASE_URL}${props.cards.image}`)
 
 
 const formattedDate = computed(() => {
-    const date = new Date(props.cards.date)
+    if (!props.cards.date) return null;
+    const date = new Date(props.cards.date);
+    if (isNaN(date.getTime())) return null; // Проверка на валидность даты
     return date.toLocaleDateString('ru-RU', {
         day: '2-digit',
-        month: '2-digit'
-    })
-})
+        month: '2-digit',
+    });
+});
 </script>
 
 <style scoped lang="scss">
@@ -65,6 +67,9 @@ const formattedDate = computed(() => {
             height: 145px;
             border-radius: 28px;
             padding-left: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
             h3 {
                 font-size: 48px;
                 max-height: 53px;
