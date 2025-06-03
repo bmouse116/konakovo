@@ -19,6 +19,7 @@
                 <Map
                 :categories="categories"
                 :points="filteredPoints"
+                :infoOpen="infoOpen"
                 @pointClick="openPointInfo"
                 @selected-filters="hanldeSelectedFilters"
                 @search-update="handleSearchUpdate"
@@ -34,16 +35,15 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, ref, computed } from 'vue'
+import { onMounted, ref, computed, onUnmounted, inject } from 'vue'
 import { useRouter } from 'vue-router'
+import type { useInactivity } from '../config/useInActivity'
 import axios from 'axios'
 import Card from '../components/MainPage/Card.vue'
 import PreviewAll from '../components/MainPage/PreviewAll.vue'
 import Map from '../components/MainPage/Map.vue'
 import PointInfo from '../components/MainPage/PointInfo.vue'
-
 const router = useRouter()
-
 interface Card {
     id: number;
     title: string;
@@ -83,7 +83,6 @@ interface PointData {
     media: string;
   }>;
 }
-
 const categories = ref<Categories[]>([])
 const cards = ref<Card[]>([])
 const points = ref<Points[]>([])
@@ -105,7 +104,6 @@ const fetchAfisha = async () => {
                 title: category.title,
             })),
         }))
-        console.log('Afisha:', cards.value)
     } catch (error) {
         console.error('Ошибка при загрузке афиши:', error)
     }
@@ -133,7 +131,6 @@ const fetchPoints = async () => {
         title: category.title,
       })),
     }));
-    console.log(points.value);
   } catch (error) {
     console.log(error);
   }
@@ -148,7 +145,6 @@ const fetchData = async () => {
     isLoading.value = false; // Отключаем загрузчик после завершения
   }
 };
-
 const searchQuery = ref('');
 
 const filteredPoints = computed(() => {
@@ -175,18 +171,26 @@ const filteredPoints = computed(() => {
 });
 
 const handleSearchUpdate = (query: string) => {
-    searchQuery.value = query;
+    if(isPointInfoVisible.value === true){
+        searchQuery.value = ''
+    }else{
+        searchQuery.value = query;
+    }
 };
+
+const infoOpen = ref(false)
 
 const openPointInfo = (pointDetails: PointData) => {
     activePoint.value = pointDetails;
     isPointInfoVisible.value = true;
-    console.log("active point", activePoint)
+    infoOpen.value = true
 }
 
 const closePointInfo = () => {
     isPointInfoVisible.value = false;
+    infoOpen.value = false
     activePoint.value = null;
+    handleSearchUpdate('')
 }
 
 const toAfisha = () => {
@@ -195,7 +199,7 @@ const toAfisha = () => {
 
 const openCard = (id: number) => {
     router.push({
-        name: 'AfishaInfo', 
+        name: 'AfishaInfo',
         params: {id}
     })
 }
@@ -209,9 +213,25 @@ const hanldeSelectedFilters = (filters: number[], showFilters: Boolean) => {
     }
 }
 
+const inactivity = inject<ReturnType<typeof useInactivity>>('inactivity');
+let unregisterInactivityCallback: (() => void) | null = null;
 
 onMounted(() => {
     fetchData()
+    if (inactivity && inactivity.registerOnInactive) {
+        unregisterInactivityCallback = inactivity.registerOnInactive(() => {
+            if (isPointInfoVisible.value) {
+                closePointInfo();
+                console.log('PointInfo closed due to inactivity.');
+            }
+        });
+    }
+})
+
+onUnmounted(() => {
+    if (unregisterInactivityCallback) {
+        unregisterInactivityCallback();
+    }
 })
 </script>
 

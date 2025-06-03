@@ -4,7 +4,7 @@
       <input 
         type="text" 
         placeholder="Поиск"
-        :value="value"
+        :value="infoOpen ? '' : value"
         @input="$emit('input', $event)"
       >
       <div class="icon-container">
@@ -20,15 +20,25 @@
 </template>
 
 <script setup lang="ts">
-defineProps({
+import { watch } from 'vue';
+const props = defineProps({
   handleVisible: {
     type: Boolean,
     default: false
   },
-  value: String
+  value: String,
+  infoOpen: {
+    type: Boolean
+  }
 })
 
-defineEmits(['input'])
+const emit = defineEmits(['input'])
+
+watch(() => props.infoOpen, (newVal) => {
+  if (newVal) {
+    emit('input', ''); // Очищаем значение родительского `value`
+  }
+});
 </script>
 
 <style scoped lang="scss">

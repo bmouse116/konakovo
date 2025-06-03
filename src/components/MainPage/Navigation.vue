@@ -16,6 +16,7 @@
                 @click="openKeyboard" 
                 :handleVisible="handleVisible"
                 :value="searchText"
+                :infoOpen="infoOpen"
                 @input="updateSearchText"
                 ></Input>
                 <ButtonIcon v-else-if="!isMap" @click="toBack">
@@ -53,6 +54,7 @@
 </template>
 
 <script setup lang="ts">
+import { watch } from 'vue'
 import { useRouter } from 'vue-router'
 import Filters from '../Filters.vue'
 import Input from '../Input.vue'
@@ -86,6 +88,9 @@ const props = defineProps({
     isVisible: {
         type: Boolean,
         default: false
+    },
+    infoOpen: {
+        type: Boolean
     }
 })
 
@@ -95,9 +100,15 @@ const emit = defineEmits(['selectedFilters', 'zoomIn', 'zoomOut', 'search-update
 
 
 const updateSearchText = (e: Event) => {
-    const value = (e.target as HTMLInputElement).value;
-    searchText.value = value;
-    emit('search-update', value);
+    const target = e.target as HTMLInputElement | null;
+    if (target && target.value !== undefined) {
+        const value = target.value;
+        searchText.value = value;
+        emit('search-update', value);
+    } else {
+        searchText.value = ''; // Если значение отсутствует, сбрасываем
+        emit('search-update', '');
+    }
 };
 
 const openKeyboard = () => {
@@ -142,6 +153,14 @@ const handleFilterSelected = (filters: string[]) => {
     emit('selectedFilters', selectedFilters.value, showFilters.value)
 }
 
+watch(
+    () => props.infoOpen,
+    (newValue) => {
+        if (newValue) {
+            closeKeyboard();
+        }
+    }
+);
 </script>
 
 <style scoped lang="scss">

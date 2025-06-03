@@ -32,6 +32,7 @@
             :isMap="true" 
             :isInfo="false" 
             :categories="categories"
+            :infoOpen="infoOpen"
             @zoomIn="handleZoomIn"
             @zoomOut="handleZoomOut"
             @selectedFilters="handleSelectedFilters"
@@ -41,9 +42,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed, nextTick, type CSSProperties } from 'vue'
-import Navigation from './Navigation.vue'
+import { ref, onMounted, onUnmounted, computed, nextTick, type CSSProperties } from 'vue';
+import Navigation from './Navigation.vue';
 import axios from 'axios';
+
 interface Categories {
   id: number;
   title: string;
@@ -70,10 +72,13 @@ const props = defineProps({
   points: {
     type: Array as () => Points[],
     required: true,
+  },
+  infoOpen: {
+    type: Boolean
   }
-})
+});
 
-const emit = defineEmits(['pointClick', 'selectedFilters', 'search-update'])
+const emit = defineEmits(['pointClick', 'selectedFilters', 'search-update']);
 
 const handleSearchUpdate = (query: string) => {
     emit('search-update', query);
@@ -100,21 +105,17 @@ const pointPositions = ref<Record<number, { x: number; y: number }>>({
 
 const BASE_URL = 'https://api-konakovo.test.itlabs.top';
 
-// Функция для получения полного URL изображения
 const getFullImageUrl = (icon: string) => `${BASE_URL}${icon}`;
 
-
-async function handlePointClick(pointId: number) {
+const handlePointClick = async (pointId: number) => {
   try {
     const response = await axios.get(`https://api-konakovo.test.itlabs.top/api/point/${pointId}`);
     const pointDetails = response.data;
-
-    // Отправляем данные в событие
     emit('pointClick', pointDetails);
   } catch (error) {
     console.error('Failed to fetch point details:', error);
   }
-}
+};
 
 const mapContainerRef = ref<HTMLDivElement | null>(null);
 const mapContentRef = ref<HTMLDivElement | null>(null);
@@ -135,12 +136,10 @@ const MAX_SCALE = 2.5;
 const ZOOM_SENSITIVITY_BUTTON = 1.2;
 const ZOOM_SENSITIVITY_WHEEL = 0.001;
 
-
 const isPinching = ref(false);
 const lastPinchDistance = ref(0);
 
-
-function getPointStyle(pointId: number): CSSProperties {
+const getPointStyle = (pointId: number): CSSProperties => {
   const position = pointPositions.value[pointId];
   if (!position) return {};
 
@@ -154,27 +153,27 @@ function getPointStyle(pointId: number): CSSProperties {
     transform: `translate(-50%, -50%) scale(${scale.value})`,
     transformOrigin: 'center'
   };
-}
-function getDistanceBetweenTouches(event: TouchEvent): number {
+};
+
+const getDistanceBetweenTouches = (event: TouchEvent): number => {
   const [touch1, touch2] = event.touches;
   const dx = touch2.clientX - touch1.clientX;
   const dy = touch2.clientY - touch1.clientY;
   return Math.sqrt(dx * dx + dy * dy);
-}
+};
 
-function onTouchStart(event: TouchEvent) {
+const onTouchStart = (event: TouchEvent) => {
   if (event.touches.length === 2) {
     isPinching.value = true;
     lastPinchDistance.value = getDistanceBetweenTouches(event);
   }
-}
+};
 
-function onTouchMove(event: TouchEvent) {
+const onTouchMove = (event: TouchEvent) => {
   if (isPinching.value && event.touches.length === 2) {
     const currentDistance = getDistanceBetweenTouches(event);
     const zoomFactor = currentDistance / lastPinchDistance.value;
 
-    // Фокус масштабирования - центр между пальцами
     const rect = mapContentRef.value?.getBoundingClientRect();
     if (!rect) return;
 
@@ -187,14 +186,14 @@ function onTouchMove(event: TouchEvent) {
 
     lastPinchDistance.value = currentDistance;
   }
-}
+};
 
-function onTouchEnd(event: TouchEvent) {
+const onTouchEnd = (event: TouchEvent) => {
   if (event.touches.length < 2) {
     isPinching.value = false;
     lastPinchDistance.value = 0;
   }
-}
+};
 
 const imageStyle = computed(() => ({
   transform: `translate(${translateX.value}px, ${translateY.value}px) scale(${scale.value})`,
@@ -205,17 +204,16 @@ const imageStyle = computed(() => ({
   webkitUserDrag: 'none',
 }) as CSSProperties);
 
-
-function updateContainerDimensions() {
+const updateContainerDimensions = () => {
   if (mapContentRef.value) {
     containerDimensions.value = {
       width: mapContentRef.value.clientWidth,
       height: mapContentRef.value.clientHeight,
     };
   }
-}
+};
 
-function onImageLoad() {
+const onImageLoad = () => {
     if (imgRef.value) {
         imageNaturalDimensions.value = {
             width: imgRef.value.offsetWidth,
@@ -223,10 +221,9 @@ function onImageLoad() {
         };
     }
     initializeMapState();
-}
+};
 
-
-function initializeMapState() {
+const initializeMapState = () => {
   updateContainerDimensions();
   if (!containerDimensions.value.width || !imageNaturalDimensions.value.width) return;
 
@@ -235,16 +232,15 @@ function initializeMapState() {
   translateY.value = (containerDimensions.value.height - imageNaturalDimensions.value.height * scale.value) / 2;
   
   applyBoundaryConstraints();
-}
+};
 
-function applyBoundaryConstraints() {
+const applyBoundaryConstraints = () => {
   if (!containerDimensions.value.width || !imageNaturalDimensions.value.width) return;
 
   const scaledWidth = imageNaturalDimensions.value.width * scale.value;
   const scaledHeight = imageNaturalDimensions.value.height * scale.value;
 
   let minX, maxX, minY, maxY;
-
 
   if (scaledWidth <= containerDimensions.value.width) {
     minX = maxX = (containerDimensions.value.width - scaledWidth) / 2;
@@ -261,17 +257,17 @@ function applyBoundaryConstraints() {
   
   translateX.value = Math.max(minX, Math.min(maxX, translateX.value));
   translateY.value = Math.max(minY, Math.min(maxY, translateY.value));
-}
+};
 
-function onPointerDown(event: PointerEvent) {
+const onPointerDown = (event: PointerEvent) => {
   if (event.button !== 0) return;
   isDragging.value = true;
   lastPointerPosition.value = { x: event.clientX, y: event.clientY };
   (event.target as HTMLElement).setPointerCapture(event.pointerId);
   if (mapContentRef.value) mapContentRef.value.style.cursor = 'grabbing';
-}
+};
 
-function onPointerMove(event: PointerEvent) {
+const onPointerMove = (event: PointerEvent) => {
   if (!isDragging.value) return;
 
   const deltaX = event.clientX - lastPointerPosition.value.x;
@@ -282,16 +278,16 @@ function onPointerMove(event: PointerEvent) {
 
   lastPointerPosition.value = { x: event.clientX, y: event.clientY };
   applyBoundaryConstraints();
-}
+};
 
-function onPointerUp(event: PointerEvent) {
+const onPointerUp = (event: PointerEvent) => {
   if (!isDragging.value) return;
   isDragging.value = false;
   (event.target as HTMLElement).releasePointerCapture(event.pointerId);
   if (mapContentRef.value) mapContentRef.value.style.cursor = 'grab';
-}
+};
 
-function doZoom(zoomFactor: number, focalPointX: number, focalPointY: number) {
+const doZoom = (zoomFactor: number, focalPointX: number, focalPointY: number) => {
   if (!containerDimensions.value.width) return;
 
   const newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, scale.value * zoomFactor));
@@ -304,23 +300,23 @@ function doZoom(zoomFactor: number, focalPointX: number, focalPointY: number) {
   translateY.value = focalPointY - imageFocalY * scale.value;
 
   applyBoundaryConstraints();
-}
+};
 
-function handleZoomIn() {
+const handleZoomIn = () => {
   if (!mapContentRef.value) return;
   const focalX = containerDimensions.value.width / 2;
   const focalY = containerDimensions.value.height / 2;
   doZoom(ZOOM_SENSITIVITY_BUTTON, focalX, focalY);
-}
+};
 
-function handleZoomOut() {
+const handleZoomOut = () => {
   if (!mapContentRef.value) return;
   const focalX = containerDimensions.value.width / 2;
   const focalY = containerDimensions.value.height / 2;
   doZoom(1 / ZOOM_SENSITIVITY_BUTTON, focalX, focalY);
-}
+};
 
-function onWheel(event: WheelEvent) {
+const onWheel = (event: WheelEvent) => {
   if (!mapContentRef.value || !imgRef.value) return;
   
   const rect = mapContentRef.value.getBoundingClientRect();
@@ -329,14 +325,14 @@ function onWheel(event: WheelEvent) {
 
   const zoomFactor = 1 - event.deltaY * ZOOM_SENSITIVITY_WHEEL;
   doZoom(zoomFactor, focalX, focalY);
-}
+};
 
 const selectedFilters = ref<string[]>([]);
 
 const handleSelectedFilters = (filters: string[], showFilters: Boolean) => {
     selectedFilters.value = filters;
-    emit('selectedFilters', selectedFilters.value, showFilters)
-}
+    emit('selectedFilters', selectedFilters.value, showFilters);
+};
 
 onMounted(() => {
   if (imgRef.value && imgRef.value.complete) {
@@ -354,10 +350,7 @@ onMounted(() => {
     mapContent.addEventListener("touchend", onTouchEnd);
     mapContent.addEventListener("touchcancel", onTouchEnd);
   }
-  nextTick(() => {
-    initializeMapState();
-  });
-  console.log("Mounted points", props.points)
+  nextTick(() => initializeMapState());
 });
 
 onUnmounted(() => {
@@ -373,7 +366,6 @@ onUnmounted(() => {
     mapContent.removeEventListener("touchcancel", onTouchEnd);
   }
 });
-
 </script>
 
 <style scoped lang="scss">

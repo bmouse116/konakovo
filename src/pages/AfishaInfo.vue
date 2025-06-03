@@ -202,18 +202,39 @@ onMounted(() => {
                 flex-direction: column;
                 gap: 120px;
                 padding: 40px;
+                position: relative;
+                height: 980px;
                 p {
                     font-size: 64px;
                     font-family: 'Inter';
                     line-height: 110%;
-                    display: -webkit-box;
                     -webkit-line-clamp: 9;
                     -webkit-box-orient: vertical;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                    min-height: 630px;
+                    overflow-y: auto;
+                    overflow-x: hidden;
+                    min-height: 635px;
+                    max-height: 635px;
+                    &::-webkit-scrollbar {
+                        width: 20px;
+                    }
+                    &::-webkit-scrollbar-track {
+                        background: #FDF5D3; 
+                        border-radius: 20px;
+                        margin-top: 40px;
+                        margin-bottom: 40px;
+                    }
+                    &::-webkit-scrollbar-thumb {
+                        background-color: #F3C923;
+                        border-radius: 10px;
+                    }
+                    &::-webkit-scrollbar-thumb:hover {
+                        background-color: #a50606;
+                    }
                 }
                 .main-description {
+                    position: absolute;
+                    bottom: 20px;
+                    width: 100%;
                     h5 {
                         font-size: 64px;
                         font-weight: 700;
@@ -222,6 +243,7 @@ onMounted(() => {
                     .description-contacts {
                         display: flex;
                         justify-content: space-between;
+                        padding-right: 4%;
                     }
                 }
             }

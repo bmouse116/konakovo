@@ -126,10 +126,6 @@ onMounted(() => {
                 background-color: #F3C923;
                 border-radius: 10px;
             }
-            &::-webkit-scrollbar-thumb:hover {
-                background-color: #a50606;
-            }
-
             .afisha-list {
                 height: auto;
                 width: 100%;

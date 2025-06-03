@@ -37,8 +37,6 @@ const toggleFilter = (filter: number) => {
     emit('filtersSelected', activeFilters.value);
 };
 
-// Загружаем категории при монтировании компонента
-
 </script>
 
 <style scoped lang="scss">

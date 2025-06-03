@@ -82,7 +82,6 @@
 <script setup lang="ts">
 import { defineProps, ref, computed } from 'vue';
 import ButtonIcon from '../ButtonIcon.vue';
-
 interface Category {
   id: number;
   title: string;
@@ -109,7 +108,7 @@ const props = defineProps({
   point: {
     type: Object as () => PointData | null,
     required: true
-  }
+  },
 });
 
 const emit = defineEmits(['close'])
@@ -117,14 +116,13 @@ const emit = defineEmits(['close'])
 const BASE_URL = 'https://api-konakovo.test.itlabs.top';
 const getFullImageUrl = (icon: string) => `${BASE_URL}${icon}`;
 
+
 const isVisible = ref(true);
 const isClosing = ref(false);
 const currentMediaIndex = ref(0);
 
 const toggleVideoPlay = (event: MouseEvent) => {
   const videoElement = event.target as HTMLVideoElement;
-  
-  // Просто переключаем воспроизведение при любом клике на видео
   if (videoElement.paused) {
     videoElement.play().catch(e => console.error("Ошибка воспроизведения:", e));
   } else {
@@ -306,11 +304,28 @@ const handleAnimationEnd = () => {
         font-size: 64px;
         font-family: 'Inter';
         line-height: 110%;
-        display: -webkit-box;
         -webkit-line-clamp: 10;
         -webkit-box-orient: vertical;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        overflow-y: auto;
+        overflow-x: hidden;
+        min-height: 635px;
+        max-height: 635px;
+        &::-webkit-scrollbar {
+          width: 20px;
+        }
+        &::-webkit-scrollbar-track {
+          background: #FDF5D3; 
+          border-radius: 20px;
+          margin-top: 40px;
+          margin-bottom: 40px;
+        }
+        &::-webkit-scrollbar-thumb {
+          background-color: #F3C923;
+          border-radius: 10px;
+        }
+        &::-webkit-scrollbar-thumb:hover {
+          background-color: #a50606;
+        }
     }
     .details-contact {
         font-family: 'Inter';
