@@ -72,7 +72,7 @@ const formattedDate = computed(() => {
             justify-content: center;
             h3 {
                 font-size: 48px;
-                max-height: 53px;
+                max-height: 61px;
                 overflow: hidden;
                 white-space: nowrap;
                 text-overflow: ellipsis;
@@ -93,6 +93,7 @@ const formattedDate = computed(() => {
             img {
                 width: 100%;
                 height: 100%;
+                border-radius: 48px;
             }
             p {
                 font-size: 48px;
