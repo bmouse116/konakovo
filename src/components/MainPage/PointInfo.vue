@@ -1,50 +1,27 @@
 <template>
-  <div 
-    v-if="isVisible" 
-    class="point-info-container" 
-    @animationend="handleAnimationEnd" 
-    :class="{ 'closing': isClosing }"
-  >
+  <div v-if="isVisible" class="point-info-container" @animationend="handleAnimationEnd"
+    :class="{ 'closing': isClosing }">
     <div class="point-info-content">
       <div class="point-info-header">
         <div class="img">
-          <button 
-            v-if="hasMultipleMedia" 
-            class="nav-button left" 
-            @click="prevMedia"
-          >
+          <button v-if="hasMultipleMedia" class="nav-button left" @click="prevMedia">
             <svg width="24" height="40" viewBox="0 0 24 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M20 40L0 20L20 0L23.8 3.8L7.6 20L23.8 36.2L20 40Z" fill="#DDB415"/>
+              <path d="M20 40L0 20L20 0L23.8 3.8L7.6 20L23.8 36.2L20 40Z" fill="#DDB415" />
             </svg>
           </button>
-          
+
           <div class="media-container">
-            <img 
-              v-if="currentMediaType === 'image'"
-              :src="getCurrentMediaUrl()" 
-              alt="Point Image"
-              
-            >
-            <video
-              v-else-if="currentMediaType === 'video'"
-            ref="videoPlayer"
-            :src="getCurrentMediaUrl()"
-            @click="toggleVideoPlay"
-            controls
-            class="video-player"
-            >
-            Ваш браузер не поддерживает данный плеер
+            <img v-if="currentMediaType === 'image'" :src="getCurrentMediaUrl()" alt="Point Image">
+            <video v-else-if="currentMediaType === 'video'" ref="videoPlayer" :src="getCurrentMediaUrl()"
+              @click="toggleVideoPlay" controls class="video-player">
+              Ваш браузер не поддерживает данный плеер
             </video>
             <p v-else>Медиа отсутствует</p>
           </div>
-          
-          <button 
-            v-if="hasMultipleMedia" 
-            class="nav-button right" 
-            @click="nextMedia"
-          >
+
+          <button v-if="hasMultipleMedia" class="nav-button right" @click="nextMedia">
             <svg width="24" height="40" viewBox="0 0 24 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M4 0L24 20L4 40L0.2 36.2L16.4 20L0.2 3.8L4 0Z" fill="#DDB415"/>
+              <path d="M4 0L24 20L4 40L0.2 36.2L16.4 20L0.2 3.8L4 0Z" fill="#DDB415" />
             </svg>
           </button>
         </div>
@@ -54,13 +31,10 @@
           <h2>{{ point?.title }}</h2>
         </div>
         <div class="details-description">
-            <p>{{ point?.description }}</p>
-            <div class="details-contact">
+          <p>{{ point?.description }}</p>
+          <div class="details-contact">
             <span v-if="point?.address">{{ point.address }}</span>
-            <div 
-              class="contact-details" 
-              :class="{ 'single-line': !point?.site }"
-            >
+            <div class="contact-details" :class="{ 'single-line': !point?.site }">
               <span v-if="point?.site">{{ point.site }}</span>
               <span v-if="point?.phone">{{ point.phone }}</span>
             </div>
@@ -71,10 +45,9 @@
     <ButtonIcon @click="startClosing">
       <template #icon>
         <svg width="39" height="67" viewBox="0 0 39 67" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path 
-            d="M37.5355 65.3195C38.4728 64.3819 38.9994 63.1103 38.9994 61.7845C38.9994 60.4587 38.4728 59.1871 37.5355 58.2495L12.7855 33.4995L37.5355 8.74949C38.4463 7.80648 38.9502 6.54347 38.9389 5.23248C38.9275 3.92149 38.4016 2.66743 37.4746 1.74039C36.5475 0.813351 35.2935 0.28751 33.9825 0.27612C32.6715 0.264729 31.4085 0.768696 30.4655 1.67949L2.18048 29.9645C1.24313 30.9021 0.716553 32.1737 0.716553 33.4995C0.716553 34.8253 1.24313 36.0968 2.18048 37.0345L30.4655 65.3195C31.4031 66.2568 32.6747 66.7834 34.0005 66.7834C35.3263 66.7834 36.5978 66.2568 37.5355 65.3195Z" 
-            fill="#DDB415"
-          />
+          <path
+            d="M37.5355 65.3195C38.4728 64.3819 38.9994 63.1103 38.9994 61.7845C38.9994 60.4587 38.4728 59.1871 37.5355 58.2495L12.7855 33.4995L37.5355 8.74949C38.4463 7.80648 38.9502 6.54347 38.9389 5.23248C38.9275 3.92149 38.4016 2.66743 37.4746 1.74039C36.5475 0.813351 35.2935 0.28751 33.9825 0.27612C32.6715 0.264729 31.4085 0.768696 30.4655 1.67949L2.18048 29.9645C1.24313 30.9021 0.716553 32.1737 0.716553 33.4995C0.716553 34.8253 1.24313 36.0968 2.18048 37.0345L30.4655 65.3195C31.4031 66.2568 32.6747 66.7834 34.0005 66.7834C35.3263 66.7834 36.5978 66.2568 37.5355 65.3195Z"
+            fill="#DDB415" />
         </svg>
       </template>
       <template #label>Назад</template>
@@ -103,7 +76,7 @@ interface PointData {
   pointInterestMedia?: Array<{
     id: number;
     media: string;
-    type?: 'image' | 'video'; // Добавляем тип медиа
+    type?: 'image' | 'video';
   }>;
 }
 
@@ -144,7 +117,7 @@ const hasMultipleMedia = computed(() => {
 const currentMediaType = computed(() => {
   if (!hasMedia.value) return null;
   const media = props.point!.pointInterestMedia![currentMediaIndex.value];
-  
+
   // Определяем тип медиа по расширению файла, если тип не указан явно
   if (media.type) return media.type;
   const extension = media.media.split('.').pop()?.toLowerCase();
@@ -212,6 +185,7 @@ const handleAnimationEnd = () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+
   .img {
     position: relative;
     max-width: 1960px;
@@ -222,26 +196,27 @@ const handleAnimationEnd = () => {
     display: flex;
     align-items: center;
     justify-content: center;
-    
+
     .media-container {
       width: 100%;
       height: 100%;
       display: flex;
       align-items: center;
       justify-content: center;
-      
-      img, video {
+
+      img,
+      video {
         width: 100%;
         height: 100%;
         border-radius: 48px;
         background-color: black;
       }
     }
-    
+
     p {
       font-size: 64px;
     }
-    
+
     .nav-button {
       position: absolute;
       top: 50%;
@@ -256,16 +231,16 @@ const handleAnimationEnd = () => {
       justify-content: center;
       cursor: pointer;
       z-index: 10;
-      
+
       svg {
         width: 100%;
         height: 100%;
       }
-      
+
       &.left {
         left: 2%;
       }
-      
+
       &.right {
         left: 93%;
       }
@@ -276,6 +251,7 @@ const handleAnimationEnd = () => {
 .point-info-details {
   max-width: 1960px;
   width: 100%;
+
   .details-header {
     width: 100%;
     height: 292px;
@@ -284,17 +260,19 @@ const handleAnimationEnd = () => {
     background-color: $title-color;
     border: 8px solid $title-border;
     padding: 40px;
+
     h2 {
-        font-size: 92px;
-        color: $text-color;
-        line-height: 110%;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-        text-overflow: ellipsis;
+      font-size: 92px;
+      color: $text-color;
+      line-height: 110%;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
   }
+
   .details-description {
     width: 100%;
     height: 1050px;
@@ -303,30 +281,35 @@ const handleAnimationEnd = () => {
     background-color: $white-color;
     padding: 40px;
     position: relative;
+
     p {
-        font-size: 64px;
-        font-family: 'Inter';
-        line-height: 110%;
-        -webkit-line-clamp: 10;
-        -webkit-box-orient: vertical;
-        overflow-y: auto;
-        overflow-x: hidden;
-        min-height: 638px;
-        max-height: 638px;
-        &::-webkit-scrollbar {
-          width: 20px;
-        }
-        &::-webkit-scrollbar-track {
-          background: #FDF5D3; 
-          border-radius: 20px;
-          margin-top: 40px;
-          margin-bottom: 40px;
-        }
-        &::-webkit-scrollbar-thumb {
-          background-color: #F3C923;
-          border-radius: 10px;
-        }
+      font-size: 64px;
+      font-family: 'Inter';
+      line-height: 110%;
+      -webkit-line-clamp: 10;
+      -webkit-box-orient: vertical;
+      overflow-y: auto;
+      overflow-x: hidden;
+      min-height: 638px;
+      max-height: 638px;
+
+      &::-webkit-scrollbar {
+        width: 20px;
+      }
+
+      &::-webkit-scrollbar-track {
+        background: #FDF5D3;
+        border-radius: 20px;
+        margin-top: 40px;
+        margin-bottom: 40px;
+      }
+
+      &::-webkit-scrollbar-thumb {
+        background-color: #F3C923;
+        border-radius: 10px;
+      }
     }
+
     .details-contact {
       font-family: 'Inter';
       font-size: 64px;
@@ -336,19 +319,19 @@ const handleAnimationEnd = () => {
       position: absolute;
       bottom: 40px;
       width: 1840px;
-      
-      > span {
+
+      >span {
         width: 65%;
         margin-bottom: 10px; // Разделение между строками
       }
-      
+
       .contact-details {
         display: flex;
         justify-content: space-between;
 
         &.single-line {
           justify-content: flex-start;
-          
+
           span {
             margin-right: 40px; // Расстояние между адресом и телефоном
           }
@@ -368,6 +351,7 @@ button {
   from {
     transform: translateY(100%);
   }
+
   to {
     transform: translateY(0);
   }
@@ -377,6 +361,7 @@ button {
   from {
     transform: translateY(0);
   }
+
   to {
     transform: translateY(100%);
   }

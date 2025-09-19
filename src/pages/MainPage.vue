@@ -39,12 +39,12 @@ const router = useRouter()
 
 const handleSwitchMap = () => {
     isMap2Visible.value = false;
-    searchQuery.value = ''; // <-- Сбрасываем строку поиска!
+    searchQuery.value = '';
 };
 
 const handleSwitchOkrug = () => {
     isMap2Visible.value = true;
-    searchQuery.value = ''; // <-- И здесь тоже сбрасываем!
+    searchQuery.value = '';
 };
 
 interface Card {
@@ -178,18 +178,14 @@ const categoriesForFilters = computed(() => {
         return [];
     }
 
-    // 1. Определяем, какие точки относятся к текущей видимой карте
     const currentMapPoints = points.value.filter(point => {
         if (isMap2Visible.value) {
-            // Логика для Map2: точки с id < 2 или > 17
             return point.id < 2 || point.id > 17;
         } else {
-            // Логика для Map (первой карты): точки с id от 2 до 17 включительно
             return point.id >= 2 && point.id <= 17;
         }
     });
 
-    // 2. Собираем все уникальные ID категорий из этих релевантных точек
     const usedCategoryIds = new Set<number>();
     currentMapPoints.forEach(point => {
         if (point.categories && Array.isArray(point.categories)) {
@@ -199,7 +195,6 @@ const categoriesForFilters = computed(() => {
         }
     });
 
-    // 3. Фильтруем основной список категорий, чтобы отобразить только используемые на текущей карте
     if (usedCategoryIds.size === 0) {
         return [];
     }

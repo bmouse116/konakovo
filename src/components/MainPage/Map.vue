@@ -61,7 +61,7 @@ const props = defineProps({
   infoOpen: {
     type: Boolean
   },
-  searchQuery: { // <-- ДОБАВЛЯЕМ НОВЫЙ PROP
+  searchQuery: {
     type: String,
     required: true,
   }
@@ -70,17 +70,14 @@ const props = defineProps({
 
 
 const relevantPoints = computed(() => {
-  // Возвращаем только точки с id от 2 до 17 включительно
   return props.points.filter(point => point.id >= 2 && point.id <= 17);
 });
 
 const selectedFilters = ref<string[]>([]);
 
 const filteredPoints = computed(() => {
-  // Начинаем с релевантных точек
   let result = relevantPoints.value;
 
-  // 1. Фильтруем по поисковому запросу
   if (props.searchQuery) {
     const query = props.searchQuery.toLowerCase();
     result = result.filter(point =>
@@ -88,7 +85,6 @@ const filteredPoints = computed(() => {
     );
   }
 
-  // 2. Фильтруем по категориям
   if (selectedFilters.value.length > 0) {
     const filterIds = selectedFilters.value.map(id => parseInt(id, 10));
     result = result.filter(point =>
