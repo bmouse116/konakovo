@@ -5,31 +5,21 @@
                 <div class="spinner"></div>
             </div>
             <div class="afisha-preview">
-                <div
-                    class="afisha-card"
-                    v-for="(item) in visibleCards"
-                    :key="item.id"
-                    @click="openCard(item.id)"
-                >
+                <div class="afisha-card" v-for="(item) in visibleCards" :key="item.id" @click="openCard(item.id)">
                     <Card :cards="item"></Card>
                 </div>
             </div>
             <PreviewAll @click="toAfisha"></PreviewAll>
             <div class="map-container">
-                <Map
-                :categories="categoriesForFilters"
-                :points="filteredPoints"
-                :infoOpen="infoOpen"
-                @pointClick="openPointInfo"
-                @selected-filters="hanldeSelectedFilters"
-                @search-update="handleSearchUpdate"
-                ></Map>
+                <Map2 v-if="isMap2Visible" :search-query="searchQuery" :categories="categoriesForFilters"
+                    :points="points" :infoOpen="infoOpen" @pointClick="openPointInfo"
+                    @search-update="handleSearchUpdate" @switch-map="handleSwitchMap">
+                </Map2>
+                <Map v-else :categories="categoriesForFilters" :search-query="searchQuery" :points="points"
+                    :infoOpen="infoOpen" @pointClick="openPointInfo" @search-update="handleSearchUpdate"
+                    @switch-map="handleSwitchOkrug"></Map>
             </div>
-            <PointInfo
-            v-if="isPointInfoVisible"
-            :point="activePoint"
-            @close="closePointInfo"
-            ></PointInfo>
+            <PointInfo v-if="isPointInfoVisible" :point="activePoint" @close="closePointInfo"></PointInfo>
         </div>
     </div>
 </template>
@@ -43,8 +33,19 @@ import Card from '../components/MainPage/Card.vue'
 import PreviewAll from '../components/MainPage/PreviewAll.vue'
 import Map from '../components/MainPage/Map.vue'
 import PointInfo from '../components/MainPage/PointInfo.vue'
-
+import Map2 from '../components/MainPage/Map2.vue'
+const isMap2Visible = ref(true)
 const router = useRouter()
+
+const handleSwitchMap = () => {
+    isMap2Visible.value = false;
+    searchQuery.value = ''; // <-- Сбрасываем строку поиска!
+};
+
+const handleSwitchOkrug = () => {
+    isMap2Visible.value = true;
+    searchQuery.value = ''; // <-- И здесь тоже сбрасываем!
+};
 
 interface Card {
     id: number;
@@ -60,30 +61,30 @@ interface Categories {
 }
 
 interface Category {
-  id: number;
-  title: string;
+    id: number;
+    title: string;
 }
 
 interface Points {
-  id: number;
-  title: string;
-  icon: string;
-  categories: Category[];
+    id: number;
+    title: string;
+    icon: string;
+    categories: Category[];
 }
 
 interface PointData {
-  id: number;
-  title: string;
-  icon: string;
-  category: Category[];
-  address?: string;
-  phone?: string | null;
-  site?: string | null;
-  description?: string;
-  pointInterestMedia?: Array<{
     id: number;
-    media: string;
-  }>;
+    title: string;
+    icon: string;
+    category: Category[];
+    address?: string;
+    phone?: string | null;
+    site?: string | null;
+    description?: string;
+    pointInterestMedia?: Array<{
+        id: number;
+        media: string;
+    }>;
 }
 
 const categories = ref<Categories[]>([])
@@ -91,7 +92,7 @@ const cards = ref<Card[]>([])
 const points = ref<Points[]>([])
 const isPointInfoVisible = ref(false)
 const activePoint = ref<PointData | null>(null)
-const selectedFilters = ref<number[]>([])
+//const selectedFilters = ref<number[]>([])
 const isLoading = ref(true)
 
 const currentCardIndex = ref(0);
@@ -134,87 +135,94 @@ const fetchAfisha = async () => {
     }
 }
 
-const fetchCategories = async() => {
+const fetchCategories = async () => {
     try {
         const response = await axios.get('https://api-konakovo.test.itlabs.top/api/category')
         categories.value = response.data
     }
-    catch(error) {
+    catch (error) {
         console.log(error)
     }
 }
 
 const fetchPoints = async () => {
-  try {
-    const response = await axios.get('https://api-konakovo.test.itlabs.top/api/point');
-    points.value = response.data.map((point: any) => ({
-      id: point.id,
-      title: point.title,
-      icon: point.icon,
-      categories: point.categories.map((category: any) => ({
-        id: category.id,
-        title: category.title,
-      })),
-    }));
-  } catch (error) {
-    console.log(error);
-  }
+    try {
+        const response = await axios.get('https://api-konakovo.test.itlabs.top/api/point');
+        points.value = response.data.map((point: any) => ({
+            id: point.id,
+            title: point.title,
+            icon: point.icon,
+            categories: point.categories.map((category: any) => ({
+                id: category.id,
+                title: category.title,
+            })),
+        }));
+    } catch (error) {
+        console.log(error);
+    }
 };
 
 const fetchData = async () => {
-  try {
-    await Promise.all([fetchAfisha(), fetchCategories(), fetchPoints()]);
-  } catch (error) {
-    console.error('Ошибка при загрузке данных:', error);
-  } finally {
-    isLoading.value = false;
-  }
+    try {
+        await Promise.all([fetchAfisha(), fetchCategories(), fetchPoints()]);
+    } catch (error) {
+        console.error('Ошибка при загрузке данных:', error);
+    } finally {
+        isLoading.value = false;
+    }
 };
 const searchQuery = ref('');
 
 const categoriesForFilters = computed(() => {
-    if (!points.value || points.value.length === 0 || !categories.value || categories.value.length === 0) {
+    if (!points.value.length || !categories.value.length) {
         return [];
     }
+
+    // 1. Определяем, какие точки относятся к текущей видимой карте
+    const currentMapPoints = points.value.filter(point => {
+        if (isMap2Visible.value) {
+            // Логика для Map2: точки с id < 2 или > 17
+            return point.id < 2 || point.id > 17;
+        } else {
+            // Логика для Map (первой карты): точки с id от 2 до 17 включительно
+            return point.id >= 2 && point.id <= 17;
+        }
+    });
+
+    // 2. Собираем все уникальные ID категорий из этих релевантных точек
     const usedCategoryIds = new Set<number>();
-    points.value.forEach(point => {
+    currentMapPoints.forEach(point => {
         if (point.categories && Array.isArray(point.categories)) {
             point.categories.forEach(cat => {
                 usedCategoryIds.add(cat.id);
             });
         }
     });
+
+    // 3. Фильтруем основной список категорий, чтобы отобразить только используемые на текущей карте
     if (usedCategoryIds.size === 0) {
         return [];
     }
     return categories.value.filter(category => usedCategoryIds.has(category.id));
 });
 
-const filteredPoints = computed(() => {
-    let result = points.value;
-    
-    if (selectedFilters.value.length > 0) {
-        result = result.filter(point => 
-            point.categories.some(category => 
-                selectedFilters.value.includes(category.id)
-            )
-        );
-    }
-    
-    if (searchQuery.value) {
-        const query = searchQuery.value.toLowerCase();
-        result = result.filter(point => 
-            point.title.toLowerCase().includes(query)
-        );
-    }
-    
-    return result;
-});
+// const filteredBySearchPoints = computed(() => {
+//     let result = points.value;
+
+//     if (searchQuery.value) {
+//         const query = searchQuery.value.toLowerCase();
+//         result = result.filter(point =>
+//             point.title.toLowerCase().includes(query)
+//         );
+//     }
+
+//     return result;
+// });
 
 const handleSearchUpdate = (query: string) => {
-    if(isPointInfoVisible.value === true){
+    if (isPointInfoVisible.value === true) {
         searchQuery.value = ''
-    }else{
+    } else {
         searchQuery.value = query;
     }
 };
@@ -241,18 +249,18 @@ const toAfisha = () => {
 const openCard = (id: number) => {
     router.push({
         name: 'AfishaInfo',
-        params: {id}
+        params: { id }
     })
 }
 
-const hanldeSelectedFilters = (filters: number[], showFilters: Boolean) => {
-    if(showFilters === false){
-        selectedFilters.value = []
-    }
-    else {
-        selectedFilters.value = filters
-    }
-}
+// const hanldeSelectedFilters = (filters: number[], showFilters: Boolean) => {
+//     if (showFilters === false) {
+//         selectedFilters.value = []
+//     }
+//     else {
+//         selectedFilters.value = filters
+//     }
+// }
 
 const inactivity = inject<ReturnType<typeof useInactivity>>('inactivity');
 let unregisterInactivityCallback: (() => void) | null = null;
@@ -306,15 +314,16 @@ onUnmounted(() => {
         }
     }
 }
+
 @keyframes slideInFromRightSmooth {
     from {
         opacity: 0;
         transform: translateX(30%);
     }
+
     to {
         opacity: 1;
         transform: translateX(0);
     }
 }
-
 </style>

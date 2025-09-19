@@ -13,7 +13,7 @@
                     <div class="info-body">
                         <div class="body-header">
                             <h2>{{ cardDetails?.title }}</h2>
-                            <div class="header-date">
+                            <div class="header-date" v-if="formattedDate || formattedTime">
                                 <span v-if="formattedDate">{{ formattedDate }}</span>
                                 <span v-if="formattedTime">{{ formattedTime }}</span>
                             </div>
@@ -22,10 +22,7 @@
                             <p>{{ cardDetails?.description }}</p>
                             <div class="main-description">
                                 <h5>{{ cardDetails?.place }}</h5>
-                                <div 
-                                    class="description-contacts" 
-                                    :class="{ 'single-line': !cardDetails?.contact }"
-                                >
+                                <div class="description-contacts" :class="{ 'single-line': !cardDetails?.contact }">
                                     <h5 v-if="cardDetails?.site">{{ cardDetails.site }}</h5>
                                     <h5 v-if="cardDetails?.contact">{{ cardDetails.contact }}</h5>
                                 </div>
@@ -61,12 +58,12 @@ interface CardDetails {
 
 const cardDetails = ref<CardDetails>()
 
-const fetchDetails = async() => {
+const fetchDetails = async () => {
     try {
         const response = await axios.get(`https://api-konakovo.test.itlabs.top/api/afisha/${id}`)
         cardDetails.value = response.data
     }
-    catch(error) {
+    catch (error) {
         console.log(error)
     }
     finally {
@@ -104,23 +101,28 @@ onMounted(() => {
 
 <style scoped lang="scss">
 @use '/src/root.scss' as *;
+
 .info {
     height: 100vh;
 }
+
 .info-container {
     background-color: $second-background;
     height: 100%;
     border-radius: 48px;
     padding: 60px;
+
     .info-padding {
         position: relative;
         height: 100%;
+
         ::v-deep(.navigation) {
             max-width: 2040px;
             width: 100%;
             height: 129px;
             bottom: -20px;
-            margin-left: -20px;
+            //margin-left: -20px;
+
             .navigation-container {
                 .search-bar {
                     background-color: transparent;
@@ -132,10 +134,14 @@ onMounted(() => {
             }
         }
     }
+
     .info-main {
         display: flex;
         flex-direction: column;
         gap: 40px;
+        height: 100%;
+        overflow: hidden;
+
         .info-img {
             max-width: 1920px;
             width: 100%;
@@ -144,23 +150,33 @@ onMounted(() => {
             display: flex;
             align-items: center;
             justify-content: center;
+            flex-shrink: 0;
+
             img {
                 width: 100%;
                 height: 100%;
+                border-radius: 28px;
             }
+
             p {
                 font-size: 64px;
             }
         }
+
         .info-body {
             background-color: $white-color;
             max-width: 1920px;
             width: 100%;
-            height: 1408px;
+            //height: 1408px;
             border-radius: 48px;
+            display: flex;
+            flex-direction: column;
+            //flex-grow: 1;
+            max-height: 1967px;
+
             .body-header {
                 width: 100%;
-                height: 428px;
+                height: auto;
                 background-color: $title-color;
                 border: 8px solid $title-border;
                 border-top-left-radius: 48px;
@@ -168,18 +184,20 @@ onMounted(() => {
                 padding: 40px;
                 display: flex;
                 flex-direction: column;
+                flex-shrink: 0;
                 gap: 44px;
+
                 h2 {
                     font-size: 80px;
                     line-height: 110%;
                     font-family: 'Inter';
                     font-weight: 700;
                     display: -webkit-box;
-                    -webkit-line-clamp: 2;
-                    -webkit-box-orient: vertical;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                    min-height: 176px;
+                    // -webkit-line-clamp: 2;
+                    // -webkit-box-orient: vertical;
+                    // overflow: hidden;
+                    // text-overflow: ellipsis;
+                    min-height: 88px;
                 }
 
                 .header-date {
@@ -201,57 +219,72 @@ onMounted(() => {
                     }
                 }
             }
+
             .body-main {
                 display: flex;
                 flex-direction: column;
                 gap: 120px;
                 padding: 40px;
-                position: relative;
-                height: 980px;
+                //position: relative;
+                //height: 1200px;
+                flex-grow: 1;
+                min-height: 0;
+
                 p {
                     font-size: 64px;
                     font-family: 'Inter';
                     line-height: 110%;
-                    -webkit-line-clamp: 9;
-                    -webkit-box-orient: vertical;
+                    // -webkit-line-clamp: 9;
+                    // -webkit-box-orient: vertical;
                     overflow-y: auto;
                     overflow-x: hidden;
-                    min-height: 638px;
-                    max-height: 638px;
+                    // min-height: 638px;
+                    // max-height: 638px;
+                    flex-grow: 1;
+                    min-height: 0;
+
                     &::-webkit-scrollbar {
                         width: 20px;
                     }
+
                     &::-webkit-scrollbar-track {
-                        background: #FDF5D3; 
+                        background: #FDF5D3;
                         border-radius: 20px;
                         margin-top: 40px;
                         margin-bottom: 40px;
                     }
+
                     &::-webkit-scrollbar-thumb {
                         background-color: #F3C923;
                         border-radius: 10px;
                     }
+
                     &::-webkit-scrollbar-thumb:hover {
                         background-color: #a50606;
                     }
                 }
+
                 .main-description {
-                    position: absolute;
-                    bottom: 20px;
-                    width: 100%;
-                    > h5 {
+                    //position: absolute;
+                    //bottom: 20px;
+                    //width: 100%;
+                    flex-shrink: 0;
+
+                    >h5 {
                         width: 65%;
                     }
+
                     h5 {
                         font-size: 64px;
                         font-weight: 700;
                         font-family: 'Inter';
                     }
+
                     .description-contacts {
                         display: flex;
                         justify-content: space-between;
                         padding-right: 4%;
-                        
+
                         &.single-line {
                             justify-content: flex-start;
 

@@ -1,51 +1,36 @@
 <template>
-    <div class="map" ref="mapContainerRef">
-        <div 
-            class="map-content"
-            ref="mapContentRef"
-            @pointerdown="onPointerDown"
-            @wheel.prevent="onWheel" 
-        >
-            <img 
-                ref="imgRef"
-                src="/src/assets/img/map.png" 
-                alt="Карта путеводителя"
-                :style="imageStyle"
-                @load="onImageLoad" 
-            >
-            <div 
-              v-for="point in points" 
-              :key="point.id" 
-              class="point" 
-              :class="`point-${point.id}`"
-              :style="getPointStyle(point.id)"
-               @click="handlePointClick(point.id)"
-            >
-              <img
-                :src="getFullImageUrl(point.icon)" 
-                :alt="point.title"
-                class="point-icon"
-              >
-            </div>
-        </div>
-        <Navigation 
-            :isMap="true" 
-            :isInfo="false" 
-            :categories="categories"
-            :infoOpen="infoOpen"
-            @zoomIn="handleZoomIn"
-            @zoomOut="handleZoomOut"
-            @selectedFilters="handleSelectedFilters"
-            @search-update="handleSearchUpdate"
-        ></Navigation>
+  <div class="map" ref="mapContainerRef">
+    <div class="map-content" ref="mapContentRef" @pointerdown="onPointerDown" @wheel.prevent="onWheel">
+      <img ref="imgRef" src="/src/assets/img/map.png" alt="Карта путеводителя" :style="imageStyle" @load="onImageLoad">
+      <div v-for="point in filteredPoints" :key="point.id" class="point" :class="`point-${point.id}`"
+        :style="getPointStyle(point.id)" @click="handlePointClick(point.id)">
+        <img :src="getFullImageUrl(point.icon)" :alt="point.title" class="point-icon">
+      </div>
     </div>
+    <Navigation :isMap="true" :searchable-points="relevantPoints" :isInfo="false" :categories="categories"
+      :infoOpen="infoOpen" @zoomIn="handleZoomIn" @zoomOut="handleZoomOut" @selectedFilters="handleSelectedFilters"
+      @search-update="handleSearchUpdate">
+    </Navigation>
+    <ButtonIcon class="back-btn" @click="toBack">
+      <template #icon>
+        <svg width="39" height="67" viewBox="0 0 39 67" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path
+            d="M37.5355 65.3195C38.4728 64.3819 38.9994 63.1103 38.9994 61.7845C38.9994 60.4587 38.4728 59.1871 37.5355 58.2495L12.7855 33.4995L37.5355 8.74949C38.4463 7.80648 38.9502 6.54347 38.9389 5.23248C38.9275 3.92149 38.4016 2.66743 37.4746 1.74039C36.5475 0.813351 35.2935 0.28751 33.9825 0.27612C32.6715 0.264729 31.4085 0.768696 30.4655 1.67949L2.18048 29.9645C1.24313 30.9021 0.716553 32.1737 0.716553 33.4995C0.716553 34.8253 1.24313 36.0968 2.18048 37.0345L30.4655 65.3195C31.4031 66.2568 32.6747 66.7834 34.0005 66.7834C35.3263 66.7834 36.5978 66.2568 37.5355 65.3195Z"
+            fill="#DDB415" />
+        </svg>
+      </template>
+      <template #label>
+        Карта округа
+      </template>
+    </ButtonIcon>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed, nextTick, type CSSProperties } from 'vue';
 import Navigation from './Navigation.vue';
 import axios from 'axios';
-
+import ButtonIcon from '../ButtonIcon.vue';
 interface Categories {
   id: number;
   title: string;
@@ -63,7 +48,7 @@ interface Points {
   categories: Category[];
 }
 
-defineProps({
+const props = defineProps({
   categories: {
     type: Array as () => Categories[],
     required: false,
@@ -75,15 +60,55 @@ defineProps({
   },
   infoOpen: {
     type: Boolean
+  },
+  searchQuery: { // <-- ДОБАВЛЯЕМ НОВЫЙ PROP
+    type: String,
+    required: true,
   }
 });
 
-const emit = defineEmits(['pointClick', 'selectedFilters', 'search-update']);
 
+
+const relevantPoints = computed(() => {
+  // Возвращаем только точки с id от 2 до 17 включительно
+  return props.points.filter(point => point.id >= 2 && point.id <= 17);
+});
+
+const selectedFilters = ref<string[]>([]);
+
+const filteredPoints = computed(() => {
+  // Начинаем с релевантных точек
+  let result = relevantPoints.value;
+
+  // 1. Фильтруем по поисковому запросу
+  if (props.searchQuery) {
+    const query = props.searchQuery.toLowerCase();
+    result = result.filter(point =>
+      point.title.toLowerCase().includes(query)
+    );
+  }
+
+  // 2. Фильтруем по категориям
+  if (selectedFilters.value.length > 0) {
+    const filterIds = selectedFilters.value.map(id => parseInt(id, 10));
+    result = result.filter(point =>
+      point.categories.some(category =>
+        filterIds.includes(category.id)
+      )
+    );
+  }
+
+  return result;
+});
+
+const emit = defineEmits(['pointClick', 'selectedFilters', 'search-update', 'switchMap']);
+const toBack = () => {
+  emit('switchMap')
+}
 const handleSearchUpdate = (query: string) => {
-    emit('search-update', query);
+  emit('search-update', query);
 };
-
+console.log(props.points)
 const pointPositions = ref<Record<number, { x: number; y: number }>>({
   2: { x: 2000, y: 200 },
   3: { x: 1950, y: 600 },
@@ -214,13 +239,13 @@ const updateContainerDimensions = () => {
 };
 
 const onImageLoad = () => {
-    if (imgRef.value) {
-        imageNaturalDimensions.value = {
-            width: imgRef.value.offsetWidth,
-            height: imgRef.value.offsetHeight,
-        };
-    }
-    initializeMapState();
+  if (imgRef.value) {
+    imageNaturalDimensions.value = {
+      width: imgRef.value.offsetWidth,
+      height: imgRef.value.offsetHeight,
+    };
+  }
+  initializeMapState();
 };
 
 const initializeMapState = () => {
@@ -230,7 +255,7 @@ const initializeMapState = () => {
   scale.value = 1;
   translateX.value = (containerDimensions.value.width - imageNaturalDimensions.value.width * scale.value) / 2;
   translateY.value = (containerDimensions.value.height - imageNaturalDimensions.value.height * scale.value) / 2;
-  
+
   applyBoundaryConstraints();
 };
 
@@ -254,7 +279,7 @@ const applyBoundaryConstraints = () => {
     minY = containerDimensions.value.height - scaledHeight;
     maxY = 0;
   }
-  
+
   translateX.value = Math.max(minX, Math.min(maxX, translateX.value));
   translateY.value = Math.max(minY, Math.min(maxY, translateY.value));
 };
@@ -294,7 +319,7 @@ const doZoom = (zoomFactor: number, focalPointX: number, focalPointY: number) =>
   if (newScale === scale.value) return;
   const imageFocalX = (focalPointX - translateX.value) / scale.value;
   const imageFocalY = (focalPointY - translateY.value) / scale.value;
-  
+
   scale.value = newScale;
   translateX.value = focalPointX - imageFocalX * scale.value;
   translateY.value = focalPointY - imageFocalY * scale.value;
@@ -318,7 +343,7 @@ const handleZoomOut = () => {
 
 const onWheel = (event: WheelEvent) => {
   if (!mapContentRef.value || !imgRef.value) return;
-  
+
   const rect = mapContentRef.value.getBoundingClientRect();
   const focalX = event.clientX - rect.left;
   const focalY = event.clientY - rect.top;
@@ -327,12 +352,15 @@ const onWheel = (event: WheelEvent) => {
   doZoom(zoomFactor, focalX, focalY);
 };
 
-const selectedFilters = ref<string[]>([]);
 
 const handleSelectedFilters = (filters: string[], showFilters: Boolean) => {
+  if (showFilters === false) {
+    selectedFilters.value = []
+  } else {
     selectedFilters.value = filters;
-    emit('selectedFilters', selectedFilters.value, showFilters);
+  }
 };
+
 
 
 
@@ -372,6 +400,7 @@ onUnmounted(() => {
 
 <style scoped lang="scss">
 @use '/src/root.scss' as *;
+
 .map {
   background-color: $second-background;
   padding: 20px;
@@ -381,7 +410,21 @@ onUnmounted(() => {
   overflow: hidden;
   position: relative;
   touch-action: none;
-  
+
+  .back-btn {
+    position: absolute;
+    top: 80px;
+    left: 80px;
+    max-width: 682px;
+    width: 100%;
+    height: 129px;
+    z-index: 999;
+    background-color: white;
+    border-radius: 48px;
+    border: 8px solid #F3C923;
+    color: #373737;
+  }
+
   .map-content {
     width: 100%;
     height: 100%;
@@ -389,20 +432,26 @@ onUnmounted(() => {
     overflow: hidden;
     cursor: grab;
     border-radius: 68px;
+
     .point {
       position: absolute;
       z-index: 0;
-      width: 299px;
+      width: 318px;
       height: 299px;
+
       .point-icon {
         width: 100%;
         height: 100%;
       }
     }
-    .point-8, .point-9, .point-12 {
+
+    .point-8,
+    .point-9,
+    .point-12 {
       width: 85px;
       height: 85px;
     }
+
     img {
       position: absolute;
       top: 0;

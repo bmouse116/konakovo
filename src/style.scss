@@ -25,6 +25,7 @@ body {
     background-color: $main-background;
     height: 100vh;
     font-family: 'Travels';
+    user-select: none;
 }
 
 h1, h2, h3, h4, h5, p, span, button {
